@@ -1,14 +1,19 @@
 from tkinter import *
 from random import randrange
-import time
+from time import *
 X = 800 #taille de la fenetre en X
 Y = 420 # taille de la fenetre en Y
 SPEED = 8 #la vitesse de deplacement de la balle
+
 COLOR = "white"
 BGCOLOR = "black"
+
 jeux = None
 PLAY = False #est-ce qu'on est en train de jouer
 JOUER = False
+
+temps_start = 0
+temps_fin = 0
 
 class Pong : # la classe gerant la balle de pong
     def __init__(self): #le constructeur de la balle de pong
@@ -29,7 +34,7 @@ class Pong : # la classe gerant la balle de pong
 
         self.dy = float(randrange(-100,100))/100 # on defini si la balle va monter ou descendre
 
-        self.balle = terrain.create_rectangle(self.x, self.y, self.x + self.tx, self.y + self.ty, fill=COLOR)
+        self.balle = terrain.create_rectangle(self.x, self.y, self.x + self.tx, self.y + self.ty, fill=COLORball)
 				#on creer un rectangle qui va etre rempli avec une couleur
         self.deplacer()
 				#on deplace la balle d'un cran
@@ -89,7 +94,7 @@ class Pong : # la classe gerant la balle de pong
 
     
 
-            tk.title("J1 : "+str(self.J1)+"/"+str(point)+"  |||  J2 : "+str(self.J2)+"/"+str(point)) #on change le titre de la fenetre pour servir de score
+            tk.title("J1 : "+str(self.J1)+"/"+str(point)+"  |||  J2 : "+str(self.J2)+"/"+str(point)+"                                      Appuyez sur entrée pour Démarer/Mettre en pause") #on change le titre de la fenetre pour servir de score
             self.raffraichir() #on rafraichi l'ecran apres avoir bouger la balle
 
         tk.after(30, self.deplacer) #on refait le deplacement tout les 30 millisecondes
@@ -103,7 +108,7 @@ class Raquette :
         self.vitesse = 10
         self.haut = haut
         self.bas = bas
-        self.ra = terrain.create_rectangle(self.x, self.y, self.x+self.tx, self.y+self.ty, fill=COLOR)
+        self.ra = terrain.create_rectangle(self.x, self.y, self.x+self.tx, self.y+self.ty, fill=COLORraq)
         tk.bind_all(self.haut, self.monter)
         tk.bind_all(self.bas, self.descendre)
 
@@ -134,20 +139,44 @@ class Raquette :
         terrain.coords(self.ra, self.x, self.y, self.x + self.tx, self.y + self.ty)
 
 def jeu():
-    global tk, terrain, jeux
+    global tk, terrain, jeux, COLORraq, COLORball
+    if COLORsraq == 0:
+        COLORraq = "white"
+    if COLORsraq == 1:
+        COLORraq = "red"
+    if COLORsraq == 2:
+        COLORraq = "green"
+    if COLORsraq == 3:
+        COLORraq = "purple"
+
+    if COLORsball == 0:
+        COLORball = "white"
+    if COLORsball == 1:
+        COLORball = "red"
+    if COLORsball == 2:
+        COLORball = "green"
+    if COLORsball == 3:
+        COLORball = "purple"
+
+
     tk = Tk()
     tk.focus_force()
     tk.resizable(width=False, height=False)
     terrain = Canvas(tk, bg=BGCOLOR, height=Y, width=X)
     terrain.pack()
     jeux = Pong()
-    tk.title("J1 : "+str(jeux.J1)+"/"+str(point)+"  |||  J2 : "+str(jeux.J2)+"/"+str(point))
+    tk.title("J1 : "+str(jeux.J1)+"/"+str(point)+"  |||  J2 : "+str(jeux.J2)+"/"+str(point)+"                                      Appuyez sur entrée pour Démarer/Mettre en pause")
     tk.mainloop()
 
 def menu_fin():
+    global temps_fin
     PLAY = False
     tk.unbind_all("<Return>")
+    temps_fin = time()
     win = Tk()
+    temps =  int(temps_fin - temps_start)
+    minutes = int(temps/60)
+    secondes = int(temps%60)
     def rejouer():
         win.destroy()
         jeux.J1 = 0
@@ -155,13 +184,13 @@ def menu_fin():
         tk.bind_all("<Return>", jeux.pause)
 
     if jeux.J1 == point :
-        lab = Label(win, text="J1 WIN ! Il y a "+str(jeux.J1)+" à "+str(jeux.J2)+" pour J1")
+        lab = Label(win, text="J1 WIN ! Il y a "+str(jeux.J1)+" à "+str(jeux.J2)+" pour J1"+" en "+str(minutes)+" min "+str(secondes)+" sec ")
         lab.grid(row=1,column=1,columnspan=2,padx=10,pady=10)
         fin_rejouer = Button(win,text="Rejouer",command=rejouer)
         fin_rejouer.grid(row=2,column=2,padx=10,pady=10)
     
     if jeux.J2 == point :
-        lab = Label(win, text="J2 WIN ! Il y a "+str(jeux.J2)+" à "+str(jeux.J1)+" pour J2")
+        lab = Label(win, text="J2 WIN ! Il y a "+str(jeux.J2)+" à "+str(jeux.J1)+" pour J2"+" en "+str(minutes)+" min "+str(secondes)+" sec ")
         lab.grid(row=1,column=1,columnspan=2,padx=10,pady=10)
         fin_rejouer = Button(win,text="Rejouer",command=rejouer)
         fin_rejouer.grid(row=2,column=2,padx=10,pady=10)
@@ -188,15 +217,17 @@ def parametre():
         menu_principal()
         
     def suivant1():
+        global temps_start
         parametre.destroy()
+        temps_start = time()
         jeu()
 
-
     def valider():
-        global point, SPEED, COLORs
+        global point, SPEED, COLORsraq, COLORsball
         point = score.get()
         SPEED = vitesse.get()
-        COLORs = couleur.get()
+        COLORsraq = couleurraq.get()
+        COLORsball = couleurball.get()
 
     parametre = Tk()
     parametre.title("Parametre")
@@ -216,11 +247,19 @@ def parametre():
     VITESSE = Entry(parametre, textvariable= vitesse, width = 5)
     VITESSE.grid(row=3, column=2, padx=10)
 
-    COULEUR = Label (parametre,text="Couleur générale :")
-    COULEUR.grid(row=4, column=1,padx=5,pady=5)
-    couleur = IntVar()
-    COULEUR = Entry(parametre, textvariable=couleur,width=5)
-    COULEUR.grid(row=4, column=2, padx=10)
+    COULEURraq = Label (parametre,text="Couleur raquette : 0=blanc, 1=rouge , 2=vert, 3=violet ")
+    COULEURraq.grid(row=4, column=1,padx=5,pady=5)
+    couleurraq = IntVar()
+    COULEURraq = Entry(parametre, textvariable=couleurraq,width=5)
+    COULEURraq.grid(row=4, column=2, padx=10)
+
+    COULEURball = Label (parametre,text="Couleur balle : 0=blanc, 1=rouge , 2=vert, 3=violet ")
+    COULEURball.grid(row=5, column=1,padx=5,pady=5)
+    couleurball = IntVar()
+    COULEURball = Entry(parametre, textvariable=couleurball,width=5)
+    COULEURball.grid(row=5, column=2, padx=10)
+    
+
 
     btn_valider = Button(parametre,text="Appliquer",command=valider)
     btn_valider.grid(row=2,column=3,rowspan=2)
